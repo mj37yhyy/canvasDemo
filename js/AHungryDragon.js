@@ -166,7 +166,7 @@ $(function () {
                 ) {
                     console.log(monster);
                     console.log(infos.hero);
-                    monsters.pop(idx);
+                    monsters.splice(idx, 1);
                     addMonster();
                 }
             }
