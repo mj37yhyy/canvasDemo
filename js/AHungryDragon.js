@@ -34,7 +34,7 @@ $(function () {
         };
 
         //霸王龙向右走
-        var dragonRunNight = {
+        var dragonRunRight = {
             prefix: "right",
             frameNumber: 8,
             x: x,
@@ -45,30 +45,28 @@ $(function () {
         //剑龙
         var monsters = [];
         for (var i = 0; i < 4; i++) {
-            monsters.push({
-                prefix: "sword_dragon",
-                frameNumber: 6,
-                x: 32 + (Math.random() * (canvas.width - 64)),
-                y: 32 + (Math.random() * (canvas.height - 64)),
-                index: 1
-            });
+            addMonster();
         }
 
         //定义所有image对象
         for (idx in monsters) {
             var info = monsters[idx];
             for (var i = 1; i <= info.frameNumber; i++) {
-                eval("var " + info.prefix + i + "=new Image();  " + info.prefix + i + ".src='image/" + info.prefix + i + ".png'; ");
+                var imgName = info.prefix + i;
+                eval("var " + imgName + "=new Image();  " + imgName + ".src='image/" + imgName + ".png'; ");
             }
         }
         for (var i = 1; i <= dragon.frameNumber; i++) {
-            eval("var " + dragon.prefix + i + "=new Image();  " + dragon.prefix + i + ".src='image/" + dragon.prefix + i + ".png'; ");
+            var imgName = dragon.prefix + i;
+            eval("var " + imgName + "=new Image();  " + imgName + ".src='image/" + imgName + ".png'; ");
         }
         for (var i = 1; i <= dragonRunLeft.frameNumber; i++) {
-            eval("var " + dragonRunLeft.prefix + i + "=new Image();  " + dragonRunLeft.prefix + i + ".src='image/" + dragonRunLeft.prefix + i + ".png'; ");
+            var imgName = dragonRunLeft.prefix + i;
+            eval("var " + imgName + "=new Image();  " + imgName + ".src='image/" + imgName + ".png'; ");
         }
-        for (var i = 1; i <= dragonRunNight.frameNumber; i++) {
-            eval("var " + dragonRunNight.prefix + i + "=new Image();  " + dragonRunNight.prefix + i + ".src='image/" + dragonRunNight.prefix + i + ".png'; ");
+        for (var i = 1; i <= dragonRunRight.frameNumber; i++) {
+            var imgName = dragonRunRight.prefix + i;
+            eval("var " + imgName + "=new Image();  " + imgName + ".src='image/" + imgName + ".png'; ");
         }
 
         var infos = {
@@ -77,19 +75,32 @@ $(function () {
         };
 
         setInterval(function () {
+            moveDragon();
             renderDragon(bgImage);//渲染所有恐龙
         }, 100);
 
         // 处理按键
+        var keysDown = {};
         addEventListener("keydown", function (e) {
-            moveDragon(e.keyCode);
+            keysDown[e.keyCode] = true;
         }, false);
 
         addEventListener("keyup", function (e) {
+            delete keysDown[e.keyCode];
             dragon.x = infos.hero.x;
             dragon.y = infos.hero.y;
             infos.hero = dragon;
         }, false);
+
+        function addMonster() {
+            monsters.push({
+                prefix: "sword_dragon",
+                frameNumber: 6,
+                x: 32 + (Math.random() * (canvas.width - 64)),
+                y: 32 + (Math.random() * (canvas.height - 64)),
+                index: 1
+            });
+        }
 
         //渲染背景
         function renderBG() {
@@ -123,26 +134,41 @@ $(function () {
         }
 
         //移动恐龙
-        function moveDragon(keyCode) {
-            if (38 === keyCode) { // 用户按的是↑
+        function moveDragon() {
+            if (38 in keysDown) { // 用户按的是↑
                 dragonRunLeft.y = infos.hero.y - speed;
                 dragonRunLeft.x = infos.hero.x;
                 infos.hero = dragonRunLeft;
             }
-            if (40 === keyCode) { // 用户按的是↓
-                dragonRunNight.y = infos.hero.y + speed;
-                dragonRunNight.x = infos.hero.x;
-                infos.hero = dragonRunNight;
+            if (40 in keysDown) { // 用户按的是↓
+                dragonRunRight.y = infos.hero.y + speed;
+                dragonRunRight.x = infos.hero.x;
+                infos.hero = dragonRunRight;
             }
-            if (37 === keyCode) { // 用户按的是←
+            if (37 in keysDown) { // 用户按的是←
                 dragonRunLeft.x = infos.hero.x - speed;
                 dragonRunLeft.y = infos.hero.y;
                 infos.hero = dragonRunLeft;
             }
-            if (39 === keyCode) { // 用户按的是→
-                dragonRunNight.x = infos.hero.x + speed;
-                dragonRunNight.y = infos.hero.y;
-                infos.hero = dragonRunNight;
+            if (39 in keysDown) { // 用户按的是→
+                dragonRunRight.x = infos.hero.x + speed;
+                dragonRunRight.y = infos.hero.y;
+                infos.hero = dragonRunRight;
+            }
+            //吃掉怪物
+            for (var idx = 0; idx < infos.monsters.length; idx++) {
+                var monster = infos.monsters[idx];
+                if (
+                    infos.hero.x <= (monster.x + 32)
+                    && monster.x <= (infos.hero.x + 32)
+                    && infos.hero.y <= (monster.y + 32)
+                    && monster.y <= (infos.hero.y + 32)
+                ) {
+                    console.log(monster);
+                    console.log(infos.hero);
+                    monsters.pop(idx);
+                    addMonster();
+                }
             }
         }
 
